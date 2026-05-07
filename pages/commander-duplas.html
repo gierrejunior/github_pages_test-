@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commander em Duplas — MTG Commander</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="../index.html">⚡ <span>MEUS DECKS</span></a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Início</a></li>
+      <li><a href="./decks.html">Decks</a></li>
+      <li><a href="./rankings.html">Rankings</a></li>
+      <li><a href="./comparativos.html">Comparativos</a></li>
+      <li><a href="./commander-duplas.html" class="active">Cmd em Duplas</a></li>
+      <li><a href="./estatisticas.html">Estatísticas</a></li>
+    </ul>
+    <button class="nav-hamburger">☰</button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container page-hero-inner">
+    <span class="page-hero-eyebrow">// Modo Especial · 2v2</span>
+    <h1>Commander em Duplas</h1>
+    <p>No modo oficial de Commander em Duplas, você e um parceiro dividem vitória e derrota contra outros dois jogadores. Estratégias, papéis, melhores combinações e análise individual de cada deck para o formato 2v2.</p>
+  </div>
+</div>
+
+<!-- COMO FUNCIONA -->
+<section class="page-section" id="regras">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 01 — O Formato</span>
+      <h2 class="sec-title">Como funciona o Commander em Duplas</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem" id="rules-grid"></div>
+    <div class="callout info mt-3">
+      <strong>Diferença crucial:</strong> Em duplas, você precisa pensar não só no seu plano, mas em como <em>complementar</em> o plano do parceiro. Um deck solo poderoso pode ser muito menos valioso que um deck moderado com bom suporte.
+    </div>
+  </div>
+</section>
+
+<!-- RANKING 2V2 -->
+<section class="page-section" id="ranking">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 02 — Ranking 2v2</span>
+      <h2 class="sec-title">Os melhores decks para 2v2</h2>
+      <p class="sec-desc">Ordenados pela nota de Commander em Duplas — diferente do ranking geral de poder.</p>
+    </div>
+    <div class="callout warn">
+      <strong>Atenção:</strong> Um deck com nota geral alta pode ter nota 2v2 baixa (exemplo: Hyrule's Arsenal — 8/10 geral mas 6/10 em duplas por ser egoísta). O contexto importa.
+    </div>
+    <div style="margin-top:1.5rem" class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-col="rank"># 2v2</th>
+            <th data-col="name">Deck</th>
+            <th data-col="role2v2">Papel</th>
+            <th data-col="nota" class="col-hide-mobile">Poder Geral</th>
+            <th data-col="nota2v2">Nota 2v2 <span class="sort-arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="table-2v2"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- MELHORES DUPLAS -->
+<section class="page-section" id="duplas">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 03 — Melhores Combinações</span>
+      <h2 class="sec-title">As melhores duplas da coleção</h2>
+      <p class="sec-desc">Pares de decks que funcionam excepcionalmente bem juntos, com papéis complementares e sinergia estratégica.</p>
+    </div>
+    <div class="dupla-grid" id="all-duplas"></div>
+  </div>
+</section>
+
+<!-- PAPÉIS EM DUPLAS -->
+<section class="page-section" id="papeis">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 04 — Papéis Estratégicos</span>
+      <h2 class="sec-title">Papéis em duplas</h2>
+      <p class="sec-desc">Em Commander em Duplas, cada deck deve ter um papel claro. A melhor dupla combina papéis complementares.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem">
+      <div class="bracket-card">
+        <div style="font-size:2rem;margin-bottom:.5rem">🗡️</div>
+        <div class="bracket-name" style="color:var(--red)">O Agressor</div>
+        <div class="bracket-desc">Pressiona os dois oponentes com criaturas ameaçadoras. Força reações e divide a atenção dos adversários.</div>
+        <div class="bracket-decks" style="margin-top:.7rem">
+          <span class="bracket-deck-tag" style="color:var(--red)">Riveteers Rampage</span>
+          <span class="bracket-deck-tag" style="color:var(--red)">Hyrule's Arsenal</span>
+        </div>
+      </div>
+      <div class="bracket-card">
+        <div style="font-size:2rem;margin-bottom:.5rem">🛡️</div>
+        <div class="bracket-name" style="color:var(--blue)">O Controlador</div>
+        <div class="bracket-desc">Responde às ameaças dos dois oponentes. Boardwipes, remoções e counters protegem a dupla.</div>
+        <div class="bracket-decks" style="margin-top:.7rem">
+          <span class="bracket-deck-tag" style="color:var(--blue)">Bumbum Guloso</span>
+          <span class="bracket-deck-tag" style="color:var(--blue)">Sultai Arisen</span>
+        </div>
+      </div>
+      <div class="bracket-card">
+        <div style="font-size:2rem;margin-bottom:.5rem">💚</div>
+        <div class="bracket-name" style="color:var(--green)">O Suporte</div>
+        <div class="bracket-desc">Gera recursos que beneficiam o parceiro. Lifegain, ramp e proteção compartilhada.</div>
+        <div class="bracket-decks" style="margin-top:.7rem">
+          <span class="bracket-deck-tag" style="color:var(--green)">Food and Fellowship</span>
+          <span class="bracket-deck-tag" style="color:var(--green)">World Shaper</span>
+        </div>
+      </div>
+      <div class="bracket-card">
+        <div style="font-size:2rem;margin-bottom:.5rem">🎭</div>
+        <div class="bracket-name" style="color:var(--yellow)">O Político</div>
+        <div class="bracket-desc">Usa mecânicas de política para forçar os oponentes a se atacarem, protegendo naturalmente a dupla.</div>
+        <div class="bracket-decks" style="margin-top:.7rem">
+          <span class="bracket-deck-tag" style="color:var(--yellow)">Cabaretti Cacophony</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CARTAS ÚTEIS EM 2V2 -->
+<section class="page-section" id="cartas">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 05 — Cartas-chave</span>
+      <h2 class="sec-title">Cartas que brilham em 2v2</h2>
+      <p class="sec-desc">Cartas presentes nos seus decks que são especialmente eficientes no modo Commander em Duplas.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem" id="key-cards-grid"></div>
+  </div>
+</section>
+
+<!-- DICAS RÁPIDAS -->
+<section class="page-section" id="dicas">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 06 — Estratégia</span>
+      <h2 class="sec-title">Dicas para 2v2</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1rem;max-width:700px" id="dicas-list"></div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <p>Meus Decks de Commander · Commander em Duplas · Maio de 2026</p>
+</footer>
+
+<script src="../js/decks-data.js"></script>
+<script src="../js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* Regras */
+  const rules = [
+    { icon:'👥', t:'Times de 2',       d:'Dois times de 2 jogadores. Você e seu parceiro compartilham a vitória — se um ganhar, ambos ganham.' },
+    { icon:'🔄', t:'Turnos alternados', d:'Os turnos alternam entre os dois times. Você e seu parceiro jogam um de cada vez, sempre contra os dois adversários.' },
+    { icon:'💬', t:'Comunicação',       d:'Converse com seu parceiro antes da partida. Defina quem faz ramp, quem controla e quem fecha.' },
+    { icon:'🎯', t:'Divida os papéis', d:'A melhor dupla tem papéis complementares. Evite dois decks com a mesma estratégia.' },
+    { icon:'⏱️', t:'Velocidade importa',d:'Com 4 jogadores na mesa, o jogo termina mais rápido. Decks que desenvolvem board nos turnos 1–3 são mais valiosos.' },
+    { icon:'🛡️', t:'Proteja o parceiro',d:'Às vezes vale mais salvar o board do parceiro do que o seu próprio. Pense como um time.' },
+  ];
+  document.getElementById('rules-grid').innerHTML = rules.map(r=>`
+    <div class="bracket-card">
+      <div style="font-size:2rem;margin-bottom:.5rem">${r.icon}</div>
+      <div class="bracket-name">${r.t}</div>
+      <div class="bracket-desc">${r.d}</div>
+    </div>`).join('');
+
+  /* Tabela 2v2 */
+  const decksWithRank = getDecksSortedByNota2v2().map((d,i)=>({...d,rank:i+1}));
+  const nc = n => n>=7.5?'var(--green)':n>=6?'var(--gold)':'var(--text2)';
+  initSortableTable('table-2v2', decksWithRank, (d, pos) => {
+    const pc = pos===1?'g':pos===2?'s':pos===3?'b':'';
+    return `<tr>
+      <td><span class="pos-num ${pc}">${pos}º</span></td>
+      <td><strong>${d.name}</strong></td>
+      <td style="font-size:.82rem;color:var(--text2)">${d.role2v2}</td>
+      <td class="col-hide-mobile"><span class="n-pill" style="color:${nc(d.nota)}">${d.nota}/10</span></td>
+      <td><span class="n-pill" style="color:${nc(d.nota2v2)};font-weight:700">${d.nota2v2}/10</span></td>
+    </tr>`;
+  });
+
+  /* Duplas */
+  document.getElementById('all-duplas').innerHTML = DUPLAS.map(dp => {
+    const deckObjs = dp.decksIds.map(id => getDeckById(id));
+    const tags = deckObjs.map(dk => `<span class="dupla-deck-tag">${dk.name} <span style="opacity:.5;font-size:.58rem">${dk.role2v2}</span></span>`).join('');
+    const strs = Array.from({length:5},(_,i)=>i<dp.stars?'⭐':'☆').join('');
+    const highlight = dp.rank <= 2 ? 'highlight' : '';
+    return `
+    <div class="dupla-card ${highlight}">
+      <div class="dupla-stars">${strs}</div>
+      <div class="dupla-title">${dp.emoji} ${dp.title}</div>
+      <div class="dupla-decks">${tags}</div>
+      <div class="dupla-desc">${dp.desc}</div>
+      <div class="dupla-meta">
+        <div class="dupla-meta-item">SINERGIA <span>${dp.sinergia}</span></div>
+        <div class="dupla-meta-item">VELOCIDADE <span>${dp.velocidade}</span></div>
+        <div class="dupla-meta-item">NOTA <span style="color:var(--gold2)">${dp.nota}/10</span></div>
+      </div>
+      <div class="dupla-dica">${dp.dica}</div>
+    </div>`;
+  }).join('');
+
+  /* Cartas-chave */
+  const keyCards = [
+    { carta:'Kitt Kanto, Mayhem Diva', deck:'Cabaretti Cacophony', why:'Goa criaturas dos DOIS oponentes — protege você e o parceiro automaticamente.' },
+    { carta:'Omnath, Locus of Rage',   deck:'World Shaper',         why:'Causa dano a criaturas dos oponentes toda vez que um terreno entra.' },
+    { carta:'Sanguine Bond',           deck:'Food and Fellowship',  why:'Converte lifegain em dano — vitória instantânea com Beacon of Immortality.' },
+    { carta:'Birthing Pod',            deck:'Riveteers Rampage',    why:'Busca a criatura certa para responder qualquer ameaça dos dois oponentes.' },
+    { carta:'Grand Crescendo',         deck:'Cabaretti Cacophony',  why:'Tokens indestrutíveis instantaneamente protegem a dupla em qualquer momento.' },
+    { carta:'Farewell',                deck:'Food and Fellowship',  why:'Boardwipe assimétrico que pode limpar ameaças enquanto preserva a estratégia.' },
+    { carta:'Tower Defense',           deck:'Bumbum Guloso',        why:'Causa dano massivo de uma vez — encerra partidas sem que os oponentes possam reagir.' },
+    { carta:'Counterspell',            deck:'Bumbum Guloso / Arsenal', why:'Protege tanto o seu board quanto o do parceiro quando mais importa.' },
+  ];
+  document.getElementById('key-cards-grid').innerHTML = keyCards.map(c=>`
+    <div class="bracket-card">
+      <div class="bracket-name" style="color:var(--gold)">${c.carta}</div>
+      <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text3);margin-bottom:.5rem">${c.deck}</div>
+      <div class="bracket-desc">${c.why}</div>
+    </div>`).join('');
+
+  /* Dicas */
+  const dicas = [
+    { n:'01', txt:'<strong>Nunca comboe antes de o parceiro estar seguro.</strong> Um combo solo que deixa o parceiro sem defesa frequentemente resulta em derrota.' },
+    { n:'02', txt:'<strong>Comunique alvos de remoção.</strong> Antes de usar Swords to Plowshares ou Beast Within, avise o parceiro para que ele não desperdice a mesma resposta.' },
+    { n:'03', txt:'<strong>Sincronize as curvas de mana.</strong> Se um deck é lento, o outro deve ser rápido para comprar tempo. World Shaper + Riveteers funciona bem por esse motivo.' },
+    { n:'04', txt:'<strong>Separe os oponentes entre vocês.</strong> Se possível, um de vocês foca em um oponente e o outro no segundo. Divide a defesa dos adversários.' },
+    { n:'05', txt:'<strong>Use boardwipes com cautela.</strong> Winds of Rath derruba o board do parceiro se ele não tiver Auras. Planeje boardwipes juntos.' },
+    { n:'06', txt:'<strong>Goad é poderoso em 2v2.</strong> Kitt Kanto forçando os oponentes a se atacarem entre si é uma das mecânicas mais eficientes do formato.' },
+  ];
+  document.getElementById('dicas-list').innerHTML = dicas.map(d=>`
+    <div class="callout good" style="display:flex;gap:1rem;align-items:flex-start">
+      <span style="font-family:var(--font-display);font-size:1.1rem;color:var(--gold);flex-shrink:0">${d.n}</span>
+      <span>${d.txt}</span>
+    </div>`).join('');
+});
+</script>
+</body>
+</html>

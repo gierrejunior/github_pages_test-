@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Todos os Decks — MTG Commander</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="../index.html">⚡ <span>MEUS DECKS</span></a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Início</a></li>
+      <li><a href="./decks.html" class="active">Decks</a></li>
+      <li><a href="./rankings.html">Rankings</a></li>
+      <li><a href="./comparativos.html">Comparativos</a></li>
+      <li><a href="./commander-duplas.html">Cmd em Duplas</a></li>
+      <li><a href="./estatisticas.html">Estatísticas</a></li>
+    </ul>
+    <button class="nav-hamburger">☰</button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container page-hero-inner">
+    <span class="page-hero-eyebrow">// Galeria Completa</span>
+    <h1>Todos os Decks</h1>
+    <p>12 decks analisados — classificação, estratégia, win-cons, cartas adicionadas e nota de poder. Clique em "Ver análise" para expandir cada deck.</p>
+  </div>
+</div>
+
+<section class="page-section">
+  <div class="container">
+    <div class="filter-bar">
+      <button class="filter-btn on" data-f="all">Todos (12)</button>
+      <button class="filter-btn" data-f="proxy">🔴 Proxy (2)</button>
+      <button class="filter-btn" data-f="intacto">🟢 Precon Intacto (3)</button>
+      <button class="filter-btn" data-f="alterado">🟡 Precon Alterado (6)</button>
+      <button class="filter-btn" data-f="custom">🔵 Customizado (1)</button>
+    </div>
+    <div class="deck-grid" id="all-decks-grid"></div>
+  </div>
+</section>
+
+<!-- seção de legenda -->
+<section class="page-section">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// Legendas</span>
+      <h2 class="sec-title">Como ler os cards</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem">
+      <div class="bracket-card">
+        <div class="bracket-name" style="color:var(--yellow)">Barras de Pontuação</div>
+        <div class="bracket-desc">Cada barra mede uma dimensão de 0–10: Velocidade, Consistência, Interação, Combos, Mana e Sinergia.</div>
+      </div>
+      <div class="bracket-card">
+        <div class="bracket-name" style="color:var(--gold)">Nota Poder</div>
+        <div class="bracket-desc">Média ponderada das 6 dimensões. Combos tem peso maior (25%), seguido de Consistência (20%).</div>
+      </div>
+      <div class="bracket-card">
+        <div class="bracket-name" style="color:var(--blue)">Nota 2v2</div>
+        <div class="bracket-desc">Avalia o desempenho específico no modo Commander em Duplas: suporte ao parceiro, controle de mesa, presença de board.</div>
+      </div>
+      <div class="bracket-card">
+        <div class="bracket-name" style="color:var(--yellow)">Tags Amarelas</div>
+        <div class="bracket-desc">Cartas adicionadas ao precon original. Tags vermelhas indicam cartas removidas.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <p>Meus Decks de Commander · Análise gerada em Maio de 2026 ·
+    <a href="https://precondecklist.com" target="_blank">precondecklist.com</a>
+  </p>
+</footer>
+
+<script src="../js/decks-data.js"></script>
+<script src="../js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const sorted = getDecksSortedByNota();
+  document.getElementById('all-decks-grid').innerHTML =
+    sorted.map((d, i) => renderDeckCard(d, i + 1)).join('');
+  initScoreBarAnimations();
+  initFilterBar('all-decks-grid');
+});
+</script>
+</body>
+</html>

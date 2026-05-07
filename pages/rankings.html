@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rankings — MTG Commander</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="../index.html">⚡ <span>MEUS DECKS</span></a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Início</a></li>
+      <li><a href="./decks.html">Decks</a></li>
+      <li><a href="./rankings.html" class="active">Rankings</a></li>
+      <li><a href="./comparativos.html">Comparativos</a></li>
+      <li><a href="./commander-duplas.html">Cmd em Duplas</a></li>
+      <li><a href="./estatisticas.html">Estatísticas</a></li>
+    </ul>
+    <button class="nav-hamburger">☰</button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container page-hero-inner">
+    <span class="page-hero-eyebrow">// Rankings & Ordenação</span>
+    <h1>Rankings de Poder</h1>
+    <p>Ranking completo do mais forte ao mais fraco. Clique em qualquer cabeçalho de coluna para ordenar. Dois rankings distintos: poder geral (pods de 4) e nota para Commander em Duplas.</p>
+  </div>
+</div>
+
+<!-- RANKING PODER GERAL -->
+<section class="page-section" id="geral">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 01 — Poder Geral</span>
+      <h2 class="sec-title">Ranking — Pods de 4 jogadores</h2>
+      <p class="sec-desc">Avalia velocidade, consistência, interação, combos, mana e sinergia com o comandante. Clique nos cabeçalhos para ordenar.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-col="rank">#</th>
+            <th data-col="name">Deck</th>
+            <th data-col="commander" class="col-hide-mobile">Comandante</th>
+            <th data-col="colorName" class="col-hide-mobile">Cores</th>
+            <th data-col="type">Tipo</th>
+            <th data-col="bracket">Bracket<span class="sort-arrow"></span></th>
+            <th data-col="nota">Poder <span class="sort-arrow">▼</span></th>
+            <th data-col="nota2v2">2v2 <span class="sort-arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="ranking-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- RANKING 2V2 -->
+<section class="page-section" id="duplas">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 02 — Commander em Duplas</span>
+      <h2 class="sec-title">Ranking — Nota 2v2</h2>
+      <p class="sec-desc">Avalia suporte ao parceiro, controle de mesa contra 2 oponentes, presença de board e independência.</p>
+    </div>
+    <div class="deck-grid" id="ranking-2v2-cards"></div>
+  </div>
+</section>
+
+<!-- BRACKET GUIDE -->
+<section class="page-section" id="brackets">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 03 — Sistema de Brackets</span>
+      <h2 class="sec-title">O que significa cada Bracket</h2>
+      <p class="sec-desc">O sistema oficial introduzido pela Wizards of the Coast em 2024 para facilitar a comunicação de nível de poder antes da partida.</p>
+    </div>
+    <div class="bracket-grid" id="bracket-grid"></div>
+    <div class="callout info mt-3">
+      <strong>Nota:</strong> Todos os decks desta coleção estão entre Bracket 2 e 3. Nenhum chega ao Bracket 4 (cEDH). O Hyrule's Arsenal proxy é o mais próximo do limite superior do Bracket 3 pela qualidade da base de mana e pelos tutores.
+    </div>
+  </div>
+</section>
+
+<!-- METODOLOGIA -->
+<section class="page-section" id="metodologia">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 04 — Metodologia</span>
+      <h2 class="sec-title">Como as notas foram calculadas</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.2rem">
+      <div class="bracket-card">
+        <div class="bracket-num" style="color:#e08060;font-size:1.8rem">15%</div>
+        <div class="bracket-name">⚡ Velocidade</div>
+        <div class="bracket-desc">Quão rápido o deck desenvolve seu plano. Turno médio de impacto efetivo.</div>
+      </div>
+      <div class="bracket-card">
+        <div class="bracket-num" style="color:#5588ee;font-size:1.8rem">20%</div>
+        <div class="bracket-name">🎯 Consistência</div>
+        <div class="bracket-desc">Tutores, draw engines, redundância de peças-chave. Quão frequentemente o deck executa o plano.</div>
+      </div>
+      <div class="bracket-card">
+        <div class="bracket-num" style="color:#cc5588;font-size:1.8rem">15%</div>
+        <div class="bracket-name">🛡️ Interação</div>
+        <div class="bracket-desc">Remoções, counters, wraths e respostas. Capacidade de responder ameaças.</div>
+      </div>
+      <div class="bracket-card">
+        <div class="bracket-num" style="color:#cc44aa;font-size:1.8rem">25%</div>
+        <div class="bracket-name">💣 Combos</div>
+        <div class="bracket-desc">Presença e qualidade de linhas de vitória. Combos de 2, 3 ou mais peças.</div>
+      </div>
+      <div class="bracket-card">
+        <div class="bracket-num" style="color:#4caf82;font-size:1.8rem">10%</div>
+        <div class="bracket-name">🌍 Base de Mana</div>
+        <div class="bracket-desc">Qualidade dos terrenos, fixação de mana, ramp e mana rocks.</div>
+      </div>
+      <div class="bracket-card">
+        <div class="bracket-num" style="color:#c9a84c;font-size:1.8rem">15%</div>
+        <div class="bracket-name">🔗 Sinergia</div>
+        <div class="bracket-desc">Coesão do deck. Cada carta potencializa o comandante e o plano geral.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <p>Meus Decks de Commander · Rankings gerados em Maio de 2026</p>
+</footer>
+
+<script src="../js/decks-data.js"></script>
+<script src="../js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* Tabela sortável */
+  function renderTableRow(d, pos) {
+    const pc = pos===1?'g':pos===2?'s':pos===3?'b':'';
+    const nc = n => n>=7.5?'var(--green)':n>=6?'var(--gold)':'var(--text2)';
+    const pips = d.colors.map(c=>`<div class="pip pip-${c}" style="width:15px;height:15px;font-size:.48rem">${c}</div>`).join('');
+    return `<tr>
+      <td><span class="pos-num ${pc}">${pos}º</span></td>
+      <td><strong>${d.name}</strong></td>
+      <td class="col-hide-mobile" style="color:var(--gold);font-style:italic;font-size:.82rem">${d.commander}</td>
+      <td class="col-hide-mobile"><div style="display:flex;gap:3px">${pips}</div></td>
+      <td><span class="deck-badge ${typeBadgeClass(d.type)}" style="font-size:.57rem">${typeBadgeLbl(d.type)}</span></td>
+      <td><span class="br-pill">B${d.bracket}</span></td>
+      <td><span class="n-pill" style="color:${nc(d.nota)}">${d.nota}/10</span></td>
+      <td><span class="n-pill" style="color:${nc(d.nota2v2)};font-weight:700">${d.nota2v2}/10</span></td>
+    </tr>`;
+  }
+
+  // Adiciona campo rank para ordenação por posição
+  const decksWithRank = getDecksSortedByNota().map((d,i) => ({...d, rank: i+1}));
+  initSortableTable('ranking-body', decksWithRank, (d, pos) => renderTableRow(d, pos));
+
+  /* Cards 2v2 */
+  const sorted2v2 = getDecksSortedByNota2v2();
+  document.getElementById('ranking-2v2-cards').innerHTML =
+    sorted2v2.map((d, i) => renderDeckCard(d, i + 1)).join('');
+  initScoreBarAnimations();
+
+  /* Brackets */
+  document.getElementById('bracket-grid').innerHTML = BRACKETS_INFO.map(b => `
+    <div class="bracket-card">
+      <div class="bracket-num" style="color:${b.cor}">B${b.num}</div>
+      <div class="bracket-name">${b.name}</div>
+      <div class="bracket-desc">${b.desc}</div>
+      ${b.decksNomes.length ? `<div class="bracket-decks">${b.decksNomes.map(n=>`<span class="bracket-deck-tag">${n}</span>`).join('')}</div>` : ''}
+    </div>`).join('');
+});
+</script>
+</body>
+</html>

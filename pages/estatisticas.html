@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estatísticas — MTG Commander</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="../index.html">⚡ <span>MEUS DECKS</span></a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Início</a></li>
+      <li><a href="./decks.html">Decks</a></li>
+      <li><a href="./rankings.html">Rankings</a></li>
+      <li><a href="./comparativos.html">Comparativos</a></li>
+      <li><a href="./commander-duplas.html">Cmd em Duplas</a></li>
+      <li><a href="./estatisticas.html" class="active">Estatísticas</a></li>
+    </ul>
+    <button class="nav-hamburger">☰</button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container page-hero-inner">
+    <span class="page-hero-eyebrow">// Análise da Coleção</span>
+    <h1>Estatísticas</h1>
+    <p>Visão analítica da coleção completa: distribuição de tipos, cores, brackets, médias de poder e onde cada deck se posiciona no espectro da coleção.</p>
+  </div>
+</div>
+
+<!-- ESTATÍSTICAS GERAIS -->
+<section class="page-section" id="gerais">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 01 — Números da coleção</span>
+      <h2 class="sec-title">A coleção em números</h2>
+    </div>
+    <div class="summary-grid" id="stats-grid"></div>
+  </div>
+</section>
+
+<!-- GRÁFICOS -->
+<section class="page-section" id="graficos">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 02 — Visualizações</span>
+      <h2 class="sec-title">Gráficos da coleção</h2>
+    </div>
+
+    <!-- linha 1: donut + radar média -->
+    <div class="chart-grid-2" style="margin-bottom:1.5rem">
+      <div class="chart-wrap">
+        <div class="chart-title">Distribuição por tipo de deck</div>
+        <div style="max-width:300px;margin:0 auto">
+          <canvas id="chart-donut"></canvas>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">Perfil médio da coleção</div>
+        <canvas id="chart-radar-avg"></canvas>
+      </div>
+    </div>
+
+    <!-- linha 2: ranking bar -->
+    <div class="chart-wrap" style="margin-bottom:1.5rem">
+      <div class="chart-title">Ranking — Poder Geral (1–10)</div>
+      <div style="height:340px">
+        <canvas id="chart-ranking"></canvas>
+      </div>
+    </div>
+
+    <!-- linha 3: ranking 2v2 -->
+    <div class="chart-wrap" style="margin-bottom:1.5rem">
+      <div class="chart-title">Ranking — Nota Commander em Duplas (1–10)</div>
+      <div style="height:340px">
+        <canvas id="chart-2v2"></canvas>
+      </div>
+    </div>
+
+    <!-- linha 4: scatter poder x 2v2 -->
+    <div class="chart-wrap">
+      <div class="chart-title">Poder Geral × Nota 2v2 — cada ponto é um deck</div>
+      <canvas id="chart-scatter" height="300"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- CURIOSIDADES -->
+<section class="page-section" id="insights">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 03 — Insights</span>
+      <h2 class="sec-title">Observações sobre a coleção</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem" id="insights-grid"></div>
+  </div>
+</section>
+
+<!-- CORES -->
+<section class="page-section" id="cores">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// 04 — Identidade de Cores</span>
+      <h2 class="sec-title">Distribuição de cores</h2>
+      <p class="sec-desc">Quais cores aparecem mais nos 12 decks e quais combinações são mais frequentes.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.2rem" id="colors-grid"></div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <p>Meus Decks de Commander · Estatísticas · Maio de 2026</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../js/decks-data.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/charts.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* Stats grid */
+  const notas = DECKS.map(d => d.nota);
+  const notas2v2 = DECKS.map(d => d.nota2v2);
+  const avg = arr => (arr.reduce((s,v)=>s+v,0)/arr.length).toFixed(1);
+
+  const stats = [
+    { icon:'📦', val: DECKS.length,                               lbl:'Total de decks'     },
+    { icon:'⚡', val: Math.max(...notas)+'/10',                    lbl:'Nota máxima'        },
+    { icon:'📉', val: Math.min(...notas)+'/10',                    lbl:'Nota mínima'        },
+    { icon:'📊', val: avg(notas)+'/10',                           lbl:'Média geral'        },
+    { icon:'⚔️', val: Math.max(...notas2v2)+'/10',               lbl:'Nota 2v2 máxima'    },
+    { icon:'🧮', val: avg(notas2v2)+'/10',                        lbl:'Média 2v2'          },
+    { icon:'🏅', val: DECKS.filter(d=>d.bracket>=3).length,       lbl:'Decks Bracket 3+'   },
+    { icon:'🎯', val: DECKS.filter(d=>d.cardsAdicionados.length).length, lbl:'Com upgrades' },
+  ];
+  document.getElementById('stats-grid').innerHTML = stats.map(s=>`
+    <div class="summary-card">
+      <div class="summary-icon">${s.icon}</div>
+      <div><div class="summary-val">${s.val}</div><div class="summary-lbl">${s.lbl}</div></div>
+    </div>`).join('');
+
+  /* Gráficos */
+  createTypeDoughnut('chart-donut', DECKS);
+  createCollectionRadar('chart-radar-avg', DECKS);
+  createRankingBar('chart-ranking', DECKS, 'nota', 'Poder Geral');
+  create2v2Bar('chart-2v2', DECKS);
+  createScatterPower2v2('chart-scatter', DECKS);
+
+  /* Insights */
+  const insights = [
+    { icon:'🔍', t:'Proxy desequilibra',   c:'warn',
+      d:'Hyrule\'s Arsenal (proxy com fetchlands e Mox Opal) está um nível acima dos outros. Em pods mistos, pode ser necessário ajustar o bracket declarado.' },
+    { icon:'🎭', t:'Cabaretti em 2v2',     c:'good',
+      d:'O deck com menor nota de poder geral (5/10) tem a MAIOR nota 2v2 (8/10). Goad é a mecânica mais eficiente do seu acervo para duplas.' },
+    { icon:'⏱️', t:'Timey-Wimey é único',  c:'info',
+      d:'É o único deck da coleção cujo arquétipo (Suspend) é fundamentalmente incompatível com 2v2. Ideal para pods temáticos de 4 jogadores lentos.' },
+    { icon:'🃏', t:'3 decks em Jund',      c:'info',
+      d:'World Shaper, Riveteers Rampage e parte de Necron Dynasties são Jund/Mono Preto. A coleção é forte nas cores preto e verde.' },
+    { icon:'💡', t:'Birthing Pod + Henzie', c:'good',
+      d:'A combinação mais poderosa de carta + comandante da coleção. Blitz permite sacrificar e buscar criaturas maiores em cadeia.' },
+    { icon:'🎯', t:'Sanguine Bond combo',  c:'warn',
+      d:'Food and Fellowship tem o único combo de 2 cartas de vitória instantânea (Sanguine Bond + Beacon of Immortality). Deve ser declarado antes da partida.' },
+  ];
+  document.getElementById('insights-grid').innerHTML = insights.map(i=>`
+    <div class="callout ${i.c}" style="border-radius:var(--r-md)">
+      <strong>${i.icon} ${i.t}</strong><br>${i.d}
+    </div>`).join('');
+
+  /* Cores */
+  const colorCount = {};
+  DECKS.forEach(d => d.colors.forEach(c => { colorCount[c] = (colorCount[c]||0)+1; }));
+  const colorInfo = {
+    W:{ name:'Branco (W)', bg:'var(--W)', txt:'#333' },
+    U:{ name:'Azul (U)',   bg:'var(--U)', txt:'#fff' },
+    B:{ name:'Preto (B)',  bg:'var(--B)', txt:'#fff' },
+    R:{ name:'Vermelho (R)',bg:'var(--R)',txt:'#fff' },
+    G:{ name:'Verde (G)',  bg:'var(--G)', txt:'#222' },
+  };
+  const colorsSorted = Object.entries(colorCount).sort((a,b)=>b[1]-a[1]);
+
+  document.getElementById('colors-grid').innerHTML = colorsSorted.map(([c, count]) => {
+    const info = colorInfo[c];
+    const decksWithColor = DECKS.filter(d=>d.colors.includes(c)).map(d=>d.name);
+    return `
+    <div class="bracket-card">
+      <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.7rem">
+        <div style="width:36px;height:36px;border-radius:50%;background:${info.bg};display:flex;align-items:center;justify-content:center;color:${info.txt};font-weight:700;font-size:.9rem;flex-shrink:0">${c}</div>
+        <div>
+          <div class="bracket-name" style="font-size:.88rem">${info.name}</div>
+          <div style="font-family:var(--font-mono);font-size:.62rem;color:var(--text3)">${count} de 12 decks</div>
+        </div>
+      </div>
+      <!-- barra proporcional -->
+      <div style="background:var(--bg3);border-radius:3px;height:5px;margin-bottom:.7rem;overflow:hidden">
+        <div style="height:100%;border-radius:3px;background:${info.bg};width:${(count/12*100).toFixed(0)}%"></div>
+      </div>
+      <div class="bracket-decks">${decksWithColor.map(n=>`<span class="bracket-deck-tag">${n}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+});
+</script>
+</body>
+</html>

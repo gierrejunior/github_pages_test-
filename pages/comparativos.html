@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparativos — MTG Commander</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="../index.html">⚡ <span>MEUS DECKS</span></a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Início</a></li>
+      <li><a href="./decks.html">Decks</a></li>
+      <li><a href="./rankings.html">Rankings</a></li>
+      <li><a href="./comparativos.html" class="active">Comparativos</a></li>
+      <li><a href="./commander-duplas.html">Cmd em Duplas</a></li>
+      <li><a href="./estatisticas.html">Estatísticas</a></li>
+    </ul>
+    <button class="nav-hamburger">☰</button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container page-hero-inner">
+    <span class="page-hero-eyebrow">// Análise Comparativa</span>
+    <h1>Comparativos</h1>
+    <p>Selecione dois decks para comparar lado a lado. Veja como seus perfis de poder se diferem em cada dimensão.</p>
+  </div>
+</div>
+
+<!-- SELETOR -->
+<section class="page-section" id="comparador">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// Comparador Interativo</span>
+      <h2 class="sec-title">Compare dois decks</h2>
+    </div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;align-items:flex-end">
+      <div>
+        <label style="font-family:var(--font-mono);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:.4rem">Deck A</label>
+        <select id="sel-a" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--r-md);padding:.6rem 1rem;font-family:var(--font-body);font-size:.95rem;min-width:220px;cursor:pointer"></select>
+      </div>
+      <div>
+        <label style="font-family:var(--font-mono);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:.4rem">Deck B</label>
+        <select id="sel-b" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--r-md);padding:.6rem 1rem;font-family:var(--font-body);font-size:.95rem;min-width:220px;cursor:pointer"></select>
+      </div>
+      <button class="btn btn-primary" id="btn-compare" style="align-self:flex-end">Comparar</button>
+    </div>
+
+    <!-- resultado -->
+    <div id="compare-result" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem" id="compare-cards"></div>
+      <div class="chart-wrap">
+        <div class="chart-title">Comparação de perfis — Radar</div>
+        <div style="max-width:500px;margin:0 auto">
+          <canvas id="radar-compare" height="400"></canvas>
+        </div>
+      </div>
+
+      <!-- tabela de dimensões -->
+      <div class="table-wrap" style="margin-top:1.5rem">
+        <table>
+          <thead>
+            <tr>
+              <th>Dimensão</th>
+              <th id="th-a">Deck A</th>
+              <th id="th-b">Deck B</th>
+              <th>Diferença</th>
+            </tr>
+          </thead>
+          <tbody id="compare-table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- conclusão -->
+      <div id="compare-verdict" style="margin-top:1.5rem"></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRECONS ALTERADOS — ANTES E DEPOIS -->
+<section class="page-section" id="precons">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">// Precons Alterados</span>
+      <h2 class="sec-title">Cartas adicionadas × removidas</h2>
+      <p class="sec-desc">Para cada precon alterado: o que foi adicionado, o que foi removido e como as mudanças impactaram o poder.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2rem" id="precon-diffs"></div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <p>Meus Decks de Commander · Comparativos · Maio de 2026</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../js/decks-data.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/charts.js"></script>
+<script>
+let radarInstance = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  /* Preencher selects */
+  const options = DECKS.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+  document.getElementById('sel-a').innerHTML = options;
+  document.getElementById('sel-b').innerHTML = options;
+  document.getElementById('sel-b').value = DECKS[1].id;
+
+  /* Comparar */
+  document.getElementById('btn-compare').addEventListener('click', () => {
+    const da = getDeckById(document.getElementById('sel-a').value);
+    const db = getDeckById(document.getElementById('sel-b').value);
+    if (!da || !db || da.id === db.id) return;
+
+    const res = document.getElementById('compare-result');
+    res.style.display = 'block';
+    res.scrollIntoView({ behavior:'smooth', block:'start' });
+
+    /* cards side by side */
+    document.getElementById('compare-cards').innerHTML = [da,db].map(d => `
+      <div class="deck-card in-view" data-id="${d.colors.join('')}">
+        <div class="deck-head">
+          <span class="deck-badge ${typeBadgeClass(d.type)}">${typeBadgeLbl(d.type)}</span>
+          <div class="deck-name">${d.name}</div>
+          <div class="deck-cmd">${d.commander}</div>
+          <div class="color-pips">${renderPips(d.colors)}</div>
+        </div>
+        <div class="score-list">${renderScoreBars(d.scores)}</div>
+        <div class="nota-block">
+          <div class="nota-row">
+            <span class="nota-lbl">Poder</span>
+            <span class="nota-num" style="color:${noteColor(d.nota)}">${d.nota}/10</span>
+          </div>
+          <div class="nota-row">
+            <span class="nota-lbl" style="color:var(--blue)">2v2</span>
+            <span class="nota-num blue">${d.nota2v2}/10</span>
+          </div>
+        </div>
+      </div>`).join('');
+
+    /* radar */
+    document.getElementById('th-a').textContent = da.name;
+    document.getElementById('th-b').textContent = db.name;
+    if (radarInstance) radarInstance.destroy();
+    radarInstance = createCompareRadar('radar-compare', da, db);
+
+    /* tabela */
+    const dims = [
+      {k:'vel',l:'⚡ Velocidade'},{k:'con',l:'🎯 Consistência'},{k:'int',l:'🛡️ Interação'},
+      {k:'combo',l:'💣 Combos'},{k:'mana',l:'🌍 Mana'},{k:'sin',l:'🔗 Sinergia'}
+    ];
+    document.getElementById('compare-table-body').innerHTML = dims.map(({k,l}) => {
+      const va = da.scores[k], vb = db.scores[k], diff = vb - va;
+      const dcolor = diff > 0 ? 'var(--green)' : diff < 0 ? 'var(--red)' : 'var(--text3)';
+      const dsign  = diff > 0 ? `+${diff}` : `${diff}`;
+      return `<tr>
+        <td>${l}</td>
+        <td><strong>${va}</strong>/10</td>
+        <td><strong>${vb}</strong>/10</td>
+        <td style="color:${dcolor};font-weight:700">${diff !== 0 ? dsign : '='}</td>
+      </tr>`;
+    }).join('');
+
+    /* veredicto */
+    const notaA = da.nota, notaB = db.nota;
+    const winner = notaA > notaB ? da.name : notaB > notaA ? db.name : null;
+    const winner2v2 = da.nota2v2 > db.nota2v2 ? da.name : db.nota2v2 > da.nota2v2 ? db.name : null;
+    document.getElementById('compare-verdict').innerHTML = `
+      <div class="callout info">
+        ${winner ? `<strong>${winner}</strong> tem maior poder geral (${Math.max(notaA,notaB)}/10 vs ${Math.min(notaA,notaB)}/10). ` : 'Poder geral empatado. '}
+        ${winner2v2 ? `Em Commander em Duplas, <strong>${winner2v2}</strong> é a escolha mais eficiente (${Math.max(da.nota2v2,db.nota2v2)}/10 vs ${Math.min(da.nota2v2,db.nota2v2)}/10).` : 'Nota 2v2 empatada.'}
+      </div>`;
+  });
+
+  /* Precon diffs */
+  const altered = DECKS.filter(d => d.type === 'alterado');
+  document.getElementById('precon-diffs').innerHTML = altered.map(d => {
+    const adds = d.cardsAdicionados.length ? `<div class="detail-block"><strong>Cartas Adicionadas (${d.cardsAdicionados.length})</strong><div class="tag-group">${d.cardsAdicionados.map(c=>`<span class="tag add">${c}</span>`).join('')}</div></div>` : '';
+    const rms  = d.cardsRemovidos && d.cardsRemovidos.length ? `<div class="detail-block"><strong>Cartas Removidas (${d.cardsRemovidos.length})</strong><div class="tag-group">${d.cardsRemovidos.map(c=>`<span class="tag rm">${c}</span>`).join('')}</div></div>` : '';
+    return `
+    <div class="deck-card in-view" data-id="${d.colors.join('')}">
+      <div class="deck-head">
+        <span class="deck-badge ${typeBadgeClass(d.type)}">${typeBadgeLbl(d.type)}</span>
+        <div class="deck-name">${d.name}</div>
+        <div class="deck-cmd" style="margin-bottom:.3rem">${d.commander}</div>
+        <div style="font-family:var(--font-mono);font-size:.62rem;color:var(--text3)">Base: ${d.precon}</div>
+        <div class="color-pips">${renderPips(d.colors)}</div>
+      </div>
+      ${adds}${rms}
+      <div class="nota-block">
+        <div class="nota-row">
+          <span class="nota-lbl">Poder pós-alteração</span>
+          <span class="nota-num" style="color:${noteColor(d.nota)}">${d.nota}/10</span>
+        </div>
+      </div>
+      <div class="detail-block mt-2"><strong>Impacto das alterações</strong>${d.analise}</div>
+    </div>`;
+  }).join('');
+});
+</script>
+</body>
+</html>

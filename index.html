@@ -3,1384 +3,178 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Commander em Dupla — Análise de Decks</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0a0a0f;
-    --bg2: #10101a;
-    --bg3: #16162a;
-    --surface: #1c1c30;
-    --surface2: #22223a;
-    --border: #2e2e50;
-    --border2: #3a3a6a;
-    --gold: #c9a84c;
-    --gold2: #e8c97e;
-    --gold3: #f5e0a0;
-    --silver: #8888bb;
-    --text: #e8e8f5;
-    --text2: #9999c0;
-    --text3: #6666a0;
-    --green:  #4caf82;
-    --red:    #e05555;
-    --yellow: #d4a017;
-    --blue:   #5588ee;
-    --purple: #8855cc;
-    --cyan:   #44bbcc;
-
-    --W: #fffde0; --U: #7ab0e8; --B: #c688d8;
-    --R: #f08060; --G: #7acc88;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Crimson Pro', Georgia, serif;
-    font-size: 17px;
-    line-height: 1.65;
-    overflow-x: hidden;
-  }
-
-  /* ─── NOISE OVERLAY ─── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 0; opacity: 0.5;
-  }
-
-  /* ─── HERO ─── */
-  .hero {
-    position: relative;
-    min-height: 100vh;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    text-align: center;
-    padding: 60px 20px;
-    overflow: hidden;
-  }
-
-  .hero::before {
-    content: '';
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.12) 0%, transparent 70%),
-      radial-gradient(ellipse 60% 80% at 20% 100%, rgba(85,85,204,0.08) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(76,175,130,0.06) 0%, transparent 60%);
-  }
-
-  .hero-emblem {
-    font-size: 5rem;
-    margin-bottom: 1.5rem;
-    filter: drop-shadow(0 0 30px rgba(201,168,76,0.5));
-    animation: emblem-float 6s ease-in-out infinite;
-  }
-
-  @keyframes emblem-float {
-    0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
-  }
-
-  .hero h1 {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(2rem, 6vw, 4.5rem);
-    font-weight: 900;
-    letter-spacing: 0.06em;
-    line-height: 1.1;
-    background: linear-gradient(135deg, var(--gold3) 0%, var(--gold) 40%, var(--silver) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.5rem;
-  }
-
-  .hero-sub {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(0.85rem, 2vw, 1.1rem);
-    letter-spacing: 0.25em;
-    color: var(--text3);
-    text-transform: uppercase;
-    margin-bottom: 2rem;
-  }
-
-  .hero-desc {
-    max-width: 600px;
-    font-size: 1.1rem;
-    color: var(--text2);
-    font-style: italic;
-    margin-bottom: 3rem;
-    line-height: 1.8;
-  }
-
-  .hero-stats {
-    display: flex; gap: 2.5rem; flex-wrap: wrap; justify-content: center;
-    margin-bottom: 3.5rem;
-  }
-
-  .hero-stat {
-    text-align: center;
-  }
-
-  .hero-stat .val {
-    font-family: 'Cinzel', serif;
-    font-size: 2.2rem;
-    font-weight: 900;
-    color: var(--gold2);
-    line-height: 1;
-  }
-
-  .hero-stat .lbl {
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text3);
-    margin-top: 4px;
-  }
-
-  .scroll-hint {
-    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    color: var(--text3); font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
-    animation: fade-in 2s 1s both;
-  }
-
-  .scroll-hint::after {
-    content: '';
-    width: 1px; height: 40px;
-    background: linear-gradient(to bottom, var(--border2), transparent);
-    animation: scroll-line 2s ease-in-out infinite;
-  }
-
-  @keyframes scroll-line {
-    0%,100% { transform: scaleY(1); opacity: 1; }
-    50% { transform: scaleY(0.5); opacity: 0.3; }
-  }
-
-  /* ─── NAV ─── */
-  nav {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(10,10,15,0.92);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 clamp(1rem, 4vw, 4rem);
-  }
-
-  .nav-inner {
-    max-width: 1300px; margin: 0 auto;
-    display: flex; align-items: center; gap: 0;
-    height: 56px;
-  }
-
-  .nav-logo {
-    font-family: 'Cinzel', serif;
-    font-weight: 900;
-    font-size: 0.9rem;
-    letter-spacing: 0.15em;
-    color: var(--gold);
-    margin-right: auto;
-    text-decoration: none;
-  }
-
-  .nav-tabs {
-    display: flex; gap: 0;
-    list-style: none;
-  }
-
-  .nav-tabs li a {
-    display: block;
-    padding: 0 1rem;
-    height: 56px; line-height: 56px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text3);
-    text-decoration: none;
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
-    white-space: nowrap;
-  }
-
-  .nav-tabs li a:hover,
-  .nav-tabs li a.active {
-    color: var(--gold2);
-    border-bottom-color: var(--gold);
-  }
-
-  /* ─── LAYOUT ─── */
-  .container {
-    max-width: 1300px; margin: 0 auto;
-    padding: 0 clamp(1rem, 4vw, 4rem);
-  }
-
-  section {
-    padding: 80px 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .section-header {
-    margin-bottom: 3rem;
-  }
-
-  .section-tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 0.75rem;
-    display: block;
-  }
-
-  .section-title {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1.6rem, 3vw, 2.5rem);
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: 0.04em;
-    line-height: 1.2;
-  }
-
-  .section-desc {
-    margin-top: 0.75rem;
-    color: var(--text2);
-    font-style: italic;
-    max-width: 700px;
-  }
-
-  /* ─── DECK CARDS ─── */
-  .deck-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .deck-card {
-    position: relative;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    cursor: pointer;
-    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
-    overflow: hidden;
-  }
-
-  .deck-card::before {
-    content: '';
-    position: absolute; inset: 0;
-    opacity: 0;
-    transition: opacity 0.3s;
-    border-radius: 12px;
-  }
-
-  .deck-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--border2);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-  }
-
-  .deck-card:hover::before { opacity: 1; }
-
-  /* Cor de fundo por identidade */
-  .deck-card[data-colors="WRG"]::before  { background: linear-gradient(135deg, rgba(255,253,224,0.04), rgba(240,128,96,0.04), rgba(122,204,136,0.04)); }
-  .deck-card[data-colors="BRG"]::before  { background: linear-gradient(135deg, rgba(198,136,216,0.04), rgba(240,128,96,0.04), rgba(122,204,136,0.04)); }
-  .deck-card[data-colors="GUR"]::before  { background: linear-gradient(135deg, rgba(122,204,136,0.04), rgba(122,176,232,0.04), rgba(240,128,96,0.04)); }
-  .deck-card[data-colors="BGU"]::before  { background: linear-gradient(135deg, rgba(198,136,216,0.04), rgba(122,204,136,0.04), rgba(122,176,232,0.04)); }
-  .deck-card[data-colors="WBG"]::before  { background: linear-gradient(135deg, rgba(255,253,224,0.04), rgba(198,136,216,0.04), rgba(122,204,136,0.04)); }
-  .deck-card[data-colors="WUG"]::before  { background: linear-gradient(135deg, rgba(255,253,224,0.04), rgba(122,176,232,0.04), rgba(122,204,136,0.04)); }
-  .deck-card[data-colors="WUR"]::before  { background: linear-gradient(135deg, rgba(255,253,224,0.04), rgba(122,176,232,0.04), rgba(240,128,96,0.04)); }
-  .deck-card[data-colors="WB"]::before   { background: linear-gradient(135deg, rgba(255,253,224,0.04), rgba(198,136,216,0.04)); }
-  .deck-card[data-colors="B"]::before    { background: linear-gradient(135deg, rgba(198,136,216,0.06), rgba(10,10,15,0)); }
-
-  .deck-pos {
-    position: absolute; top: 1rem; right: 1rem;
-    font-family: 'Cinzel', serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text3);
-    letter-spacing: 0.1em;
-  }
-
-  .deck-rank-num {
-    position: absolute; top: -0.2rem; left: -0.2rem;
-    font-family: 'Cinzel', serif;
-    font-size: 4rem;
-    font-weight: 900;
-    color: var(--border);
-    line-height: 1;
-    user-select: none;
-    pointer-events: none;
-    letter-spacing: -0.05em;
-  }
-
-  .deck-header {
-    position: relative;
-    margin-bottom: 1rem;
-    padding-left: 0;
-    padding-top: 1rem;
-  }
-
-  .deck-type-badge {
-    display: inline-flex; align-items: center; gap: 0.35rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 2px 8px;
-    border-radius: 20px;
-    margin-bottom: 0.6rem;
-  }
-
-  .badge-proxy    { background: rgba(224,85,85,0.15);  color: var(--red);    border: 1px solid rgba(224,85,85,0.3);  }
-  .badge-intacto  { background: rgba(76,175,130,0.15); color: var(--green);  border: 1px solid rgba(76,175,130,0.3); }
-  .badge-alterado { background: rgba(212,160,23,0.15); color: var(--yellow); border: 1px solid rgba(212,160,23,0.3); }
-  .badge-custom   { background: rgba(85,136,238,0.15); color: var(--blue);   border: 1px solid rgba(85,136,238,0.3); }
-
-  .deck-name {
-    font-family: 'Cinzel', serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: 0.04em;
-    line-height: 1.3;
-    margin-bottom: 0.25rem;
-  }
-
-  .deck-commander {
-    font-size: 0.85rem;
-    color: var(--gold);
-    font-style: italic;
-  }
-
-  .color-pips {
-    display: flex; gap: 4px; margin: 0.75rem 0;
-  }
-
-  .pip {
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.1);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.55rem; font-weight: 700;
-  }
-
-  .pip-W { background: var(--W); color: #333; }
-  .pip-U { background: var(--U); color: #fff; }
-  .pip-B { background: var(--B); color: #fff; }
-  .pip-R { background: var(--R); color: #fff; }
-  .pip-G { background: var(--G); color: #fff; }
-
-  /* Score bar */
-  .score-row {
-    display: flex; align-items: center; gap: 0.75rem;
-    margin: 0.75rem 0 0;
-  }
-
-  .score-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text3);
-    width: 80px; flex-shrink: 0;
-  }
-
-  .score-bar-wrap {
-    flex: 1;
-    height: 5px;
-    background: var(--bg3);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .score-bar-fill {
-    height: 100%;
-    border-radius: 3px;
-    transform-origin: left;
-    transform: scaleX(0);
-    transition: transform 0.8s cubic-bezier(0.22,1,0.36,1);
-  }
-
-  .deck-card.visible .score-bar-fill {
-    transform: scaleX(1);
-  }
-
-  .score-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--text2);
-    width: 28px; text-align: right;
-  }
-
-  /* 2v2 note big */
-  .nota-2v2 {
-    display: flex; align-items: center; gap: 0.5rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-  }
-
-  .nota-2v2 .label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text3);
-  }
-
-  .nota-2v2 .stars {
-    display: flex; gap: 2px;
-  }
-
-  .star { color: var(--border2); font-size: 0.85rem; }
-  .star.on { color: var(--gold); }
-
-  .nota-num {
-    margin-left: auto;
-    font-family: 'Cinzel', serif;
-    font-size: 1.3rem;
-    font-weight: 900;
-    color: var(--gold2);
-  }
-
-  .deck-role {
-    display: inline-block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background: var(--bg3);
-    color: var(--text2);
-    border: 1px solid var(--border);
-    margin-top: 0.5rem;
-  }
-
-  /* ─── EXPANDABLE DETAIL ─── */
-  .deck-detail {
-    display: none;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-    font-size: 0.9rem;
-    color: var(--text2);
-    line-height: 1.7;
-    animation: detail-open 0.3s ease;
-  }
-
-  @keyframes detail-open {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .deck-detail.open { display: block; }
-
-  .detail-section { margin-bottom: 0.75rem; }
-  .detail-section strong {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--gold);
-    display: block;
-    margin-bottom: 0.3rem;
-  }
-
-  .detail-tags {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.4rem;
-  }
-
-  .detail-tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.62rem;
-    padding: 2px 8px;
-    border-radius: 20px;
-    background: var(--bg3);
-    color: var(--text2);
-    border: 1px solid var(--border);
-  }
-
-  .expand-btn {
-    display: flex; align-items: center; gap: 6px;
-    margin-top: 0.75rem;
-    background: none; border: none;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text3);
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-
-  .expand-btn:hover { color: var(--gold2); }
-  .expand-btn .arrow { transition: transform 0.3s; display: inline-block; }
-  .expand-btn.open .arrow { transform: rotate(180deg); }
-
-  /* ─── DUPLAS SECTION ─── */
-  .dupla-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .dupla-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.25s, border-color 0.25s;
-  }
-
-  .dupla-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--gold);
-  }
-
-  .dupla-card.top::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--gold), var(--gold2), var(--gold));
-  }
-
-  .dupla-stars {
-    font-size: 1.1rem; margin-bottom: 0.75rem;
-  }
-
-  .dupla-title {
-    font-family: 'Cinzel', serif;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 0.5rem;
-  }
-
-  .dupla-decks {
-    display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;
-  }
-
-  .dupla-deck-tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.68rem;
-    padding: 3px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--border2);
-    color: var(--gold2);
-    background: rgba(201,168,76,0.08);
-  }
-
-  .dupla-desc {
-    font-size: 0.9rem;
-    color: var(--text2);
-    font-style: italic;
-    line-height: 1.6;
-    margin-bottom: 0.75rem;
-  }
-
-  .dupla-meta {
-    display: flex; gap: 1rem; flex-wrap: wrap;
-  }
-
-  .dupla-meta-item {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--text3);
-    letter-spacing: 0.1em;
-  }
-
-  .dupla-meta-item span { color: var(--text2); }
-
-  /* ─── FILTER BAR ─── */
-  .filter-bar {
-    display: flex; gap: 0.5rem; flex-wrap: wrap;
-    margin-bottom: 2rem;
-  }
-
-  .filter-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text3);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .filter-btn:hover { border-color: var(--border2); color: var(--text2); }
-  .filter-btn.active {
-    background: var(--gold);
-    border-color: var(--gold);
-    color: var(--bg);
-    font-weight: 700;
-  }
-
-  /* ─── TABLE ─── */
-  .table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-  }
-
-  table {
-    width: 100%; border-collapse: collapse;
-    font-size: 0.88rem;
-  }
-
-  thead {
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-  }
-
-  th {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text3);
-    padding: 12px 16px;
-    text-align: left;
-    white-space: nowrap;
-  }
-
-  td {
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-  }
-
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--surface2); }
-
-  .pos-num {
-    font-family: 'Cinzel', serif;
-    font-size: 1rem;
-    font-weight: 900;
-    color: var(--text3);
-  }
-
-  .pos-num.gold   { color: var(--gold2); }
-  .pos-num.silver { color: #aaaacc; }
-  .pos-num.bronze { color: #c87050; }
-
-  .note-pill {
-    display: inline-block;
-    font-family: 'Cinzel', serif;
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 2px 10px;
-    border-radius: 20px;
-  }
-
-  .bracket-pill {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background: var(--bg3);
-    color: var(--text2);
-    border: 1px solid var(--border);
-  }
-
-  /* ─── REGRAS 2v2 ─── */
-  .rules-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .rule-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1.5rem;
-    transition: border-color 0.2s;
-  }
-
-  .rule-card:hover { border-color: var(--gold); }
-
-  .rule-icon { font-size: 2rem; margin-bottom: 0.75rem; }
-
-  .rule-title {
-    font-family: 'Cinzel', serif;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--gold2);
-    margin-bottom: 0.5rem;
-    letter-spacing: 0.04em;
-  }
-
-  .rule-desc {
-    font-size: 0.88rem;
-    color: var(--text2);
-    line-height: 1.65;
-  }
-
-  /* ─── FOOTER ─── */
-  footer {
-    text-align: center;
-    padding: 3rem 1rem;
-    color: var(--text3);
-    font-size: 0.8rem;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.1em;
-  }
-
-  footer a { color: var(--gold); text-decoration: none; }
-
-  /* ─── UTILITIES ─── */
-  @keyframes fade-in {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .fade-in { animation: fade-in 0.6s ease both; }
-
-  .hidden { display: none !important; }
-
-  /* ─── SCROLLBAR ─── */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg2); }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-</style>
+<title>Meus Decks de Commander — MTG</title>
+<meta name="description" content="Análise completa dos 12 decks de Commander: rankings, proxies, precons, estratégias e Commander em Duplas.">
+<link rel="stylesheet" href="./css/style.css">
+<link rel="stylesheet" href="./css/responsive.css">
 </head>
 <body>
 
-<!-- HERO -->
-<div class="hero" id="home">
-  <div class="hero-emblem">⚔️</div>
-  <p class="hero-sub">Universo Commander EDH</p>
-  <h1>Commander em Dupla</h1>
-  <p class="hero-desc">
-    Análise estratégica dos 12 decks para o modo oficial de Commander 2v2 —
-    onde você e um parceiro jogam lado a lado contra dois adversários.
-  </p>
-  <div class="hero-stats">
-    <div class="hero-stat"><div class="val">12</div><div class="lbl">Decks</div></div>
-    <div class="hero-stat"><div class="val">3</div><div class="lbl">Precons Intactos</div></div>
-    <div class="hero-stat"><div class="val">6</div><div class="lbl">Precons Alterados</div></div>
-    <div class="hero-stat"><div class="val">2</div><div class="lbl">Proxies</div></div>
-    <div class="hero-stat"><div class="val">1</div><div class="lbl">Customizado</div></div>
-  </div>
-  <div class="scroll-hint">role para explorar</div>
-</div>
-
-<!-- NAV -->
-<nav>
+<!-- ── NAV ── -->
+<nav class="site-nav">
   <div class="nav-inner">
-    <a class="nav-logo" href="#home">⚡ CMD 2v2</a>
-    <ul class="nav-tabs">
-      <li><a href="#ranking-2v2" class="active">Ranking 2v2</a></li>
-      <li><a href="#duplas">Duplas</a></li>
-      <li><a href="#todos">Todos os Decks</a></li>
-      <li><a href="#regras">Regras 2v2</a></li>
+    <a class="nav-brand" href="./index.html">⚡ <span>MEUS DECKS</span></a>
+    <ul class="nav-links">
+      <li><a href="./index.html" class="active">Início</a></li>
+      <li><a href="./pages/decks.html">Decks</a></li>
+      <li><a href="./pages/rankings.html">Rankings</a></li>
+      <li><a href="./pages/comparativos.html">Comparativos</a></li>
+      <li><a href="./pages/commander-duplas.html">Cmd em Duplas</a></li>
+      <li><a href="./pages/estatisticas.html">Estatísticas</a></li>
     </ul>
+    <button class="nav-hamburger" aria-label="Menu">☰</button>
   </div>
 </nav>
 
-<!-- RANKING 2v2 -->
-<section id="ranking-2v2">
+<!-- ── HERO ── -->
+<div class="hero" id="home">
+  <div class="hero-glyph">🃏</div>
+  <p class="hero-eyebrow">Commander · EDH · Análise de Coleção</p>
+  <h1>Meus Decks<br>de Commander</h1>
+  <p class="hero-sub">12 decks analisados, classificados e comparados</p>
+  <p class="hero-desc">
+    Análise estratégica completa — ranking de poder, classificação de proxies e precons,
+    cartas adicionadas e removidas, e um guia dedicado ao modo Commander em Duplas.
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="val">12</span><span class="lbl">Decks</span></div>
+    <div class="hero-stat"><span class="val">2</span><span class="lbl">Proxies</span></div>
+    <div class="hero-stat"><span class="val">3</span><span class="lbl">Precons Intactos</span></div>
+    <div class="hero-stat"><span class="val">6</span><span class="lbl">Precons Alterados</span></div>
+    <div class="hero-stat"><span class="val">1</span><span class="lbl">Customizado</span></div>
+  </div>
+  <div class="hero-ctas">
+    <a href="./pages/decks.html" class="btn btn-primary">Ver todos os decks →</a>
+    <a href="./pages/rankings.html" class="btn btn-outline">Ranking de poder</a>
+    <a href="./pages/commander-duplas.html" class="btn btn-outline">⚔️ Commander em Duplas</a>
+  </div>
+  <div class="scroll-cue">role para explorar</div>
+</div>
+
+<!-- ── RESUMO RÁPIDO ── -->
+<section class="page-section" id="resumo">
   <div class="container">
-    <div class="section-header">
-      <span class="section-tag">// Ranking Principal</span>
-      <h2 class="section-title">Melhor desempenho em Commander em Dupla</h2>
-      <p class="section-desc">
-        No Commander em Dupla, você compartilha o turno com um parceiro. 
-        A pontuação aqui avalia: suporte ao aliado, controle de mesa, presença de board, independência e velocidade.
-      </p>
+    <div class="sec-head">
+      <span class="sec-tag">// Visão Geral</span>
+      <h2 class="sec-title">A coleção em números</h2>
+      <p class="sec-desc">Uma visão rápida do estado atual dos 12 decks — classificação, brackets e destaques.</p>
     </div>
 
-    <div class="filter-bar">
-      <button class="filter-btn active" data-filter="all">Todos</button>
-      <button class="filter-btn" data-filter="proxy">🔴 Proxy</button>
-      <button class="filter-btn" data-filter="intacto">🟢 Precon Intacto</button>
-      <button class="filter-btn" data-filter="alterado">🟡 Precon Alterado</button>
-      <button class="filter-btn" data-filter="custom">🔵 Customizado</button>
-    </div>
+    <div class="summary-grid" id="summary-grid"></div>
 
-    <div class="deck-grid" id="deck-grid">
-      <!-- Injetado via JS -->
+    <div class="sec-head mt-3">
+      <span class="sec-tag">// Top Decks</span>
+      <h2 class="sec-title">Os mais fortes da coleção</h2>
+    </div>
+    <div class="deck-grid" id="top-decks-grid"></div>
+
+    <div style="text-align:center;margin-top:2.5rem">
+      <a href="./pages/decks.html" class="btn btn-outline">Ver todos os 12 decks →</a>
     </div>
   </div>
 </section>
 
-<!-- DUPLAS -->
-<section id="duplas">
+<!-- ── DESTAQUES 2v2 ── -->
+<section class="page-section" id="duplas-preview">
   <div class="container">
-    <div class="section-header">
-      <span class="section-tag">// Combinações Estratégicas</span>
-      <h2 class="section-title">Melhores Duplas</h2>
-      <p class="section-desc">Pares de decks que funcionam bem juntos no modo Commander em Dupla, com papéis complementares.</p>
+    <div class="sec-head">
+      <span class="sec-tag">// Commander em Duplas</span>
+      <h2 class="sec-title">Melhores duplas da coleção</h2>
+      <p class="sec-desc">No modo oficial de Commander em Duplas, você e um parceiro jogam lado a lado contra outros dois. Algumas combinações dos seus decks funcionam excepcionalmente bem juntas.</p>
     </div>
-    <div class="dupla-grid" id="dupla-grid"></div>
-  </div>
-</section>
-
-<!-- TODOS OS DECKS — TABELA -->
-<section id="todos">
-  <div class="container">
-    <div class="section-header">
-      <span class="section-tag">// Visão Geral</span>
-      <h2 class="section-title">Todos os 12 Decks</h2>
-      <p class="section-desc">Tabela completa com poder geral, bracket e nota para 2v2 de cada deck.</p>
-    </div>
-    <div class="table-wrap">
-      <table id="all-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Deck</th>
-            <th>Comandante</th>
-            <th>Cores</th>
-            <th>Tipo</th>
-            <th>Bracket</th>
-            <th>Poder Geral</th>
-            <th>Nota 2v2</th>
-          </tr>
-        </thead>
-        <tbody id="table-body"></tbody>
-      </table>
+    <div class="dupla-grid" id="top-duplas"></div>
+    <div style="text-align:center;margin-top:2.5rem">
+      <a href="./pages/commander-duplas.html" class="btn btn-primary">Análise completa de 2v2 →</a>
     </div>
   </div>
 </section>
 
-<!-- REGRAS 2v2 -->
-<section id="regras">
+<!-- ── CLASSIFICAÇÃO RÁPIDA ── -->
+<section class="page-section" id="categorias">
   <div class="container">
-    <div class="section-header">
-      <span class="section-tag">// Modo de Jogo</span>
-      <h2 class="section-title">Como funciona o Commander em Dupla</h2>
-      <p class="section-desc">O modo oficial de Commander 2v2 tem regras próprias que impactam diretamente a escolha de decks.</p>
+    <div class="sec-head">
+      <span class="sec-tag">// Classificação</span>
+      <h2 class="sec-title">Como os decks foram classificados</h2>
     </div>
-    <div class="rules-grid">
-      <div class="rule-card">
-        <div class="rule-icon">👥</div>
-        <div class="rule-title">Formato</div>
-        <div class="rule-desc">Dois times de dois jogadores. Você e seu parceiro jogam do mesmo lado contra os outros dois. A vitória é conquistada pelo time — se um parceiro ganhar, ambos vencem.</div>
-      </div>
-      <div class="rule-card">
-        <div class="rule-icon">🔄</div>
-        <div class="rule-title">Turnos Alternados</div>
-        <div class="rule-desc">Os turnos alternam entre os dois times, não entre os quatro jogadores individualmente. Você e seu parceiro jogam um de cada vez, mas sempre contra os dois adversários juntos.</div>
-      </div>
-      <div class="rule-card">
-        <div class="rule-icon">🛡️</div>
-        <div class="rule-title">Proteja o Parceiro</div>
-        <div class="rule-desc">Com dois oponentes focando em você, é vital ter proteção. Decks com Heroic Intervention, counters e boardwipes protegem o board de ambos os aliados.</div>
-      </div>
-      <div class="rule-card">
-        <div class="rule-icon">💬</div>
-        <div class="rule-title">Comunicação é Chave</div>
-        <div class="rule-desc">Converse com seu parceiro antes da partida. Definam quem faz ramp, quem controla e quem fecha. Dois decks solo sem coordenação perdem para uma dupla sinérgica.</div>
-      </div>
-      <div class="rule-card">
-        <div class="rule-icon">⏱️</div>
-        <div class="rule-title">Velocidade Importa</div>
-        <div class="rule-desc">Com quatro jogadores na mesa, o jogo pode terminar mais rápido. Decks que desenvolvem board nos primeiros 3 turnos são mais valiosos em 2v2.</div>
-      </div>
-      <div class="rule-card">
-        <div class="rule-icon">🎯</div>
-        <div class="rule-title">Dividam os Papéis</div>
-        <div class="rule-desc">A melhor dupla tem papéis complementares: um controla/suporta e o outro pressiona/fecha. Evite duas estratégias idênticas — redundância é fraqueza em 2v2.</div>
-      </div>
-    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem" id="cat-grid"></div>
   </div>
 </section>
 
-<footer>
-  <p>Commander em Dupla — Análise de Decks &nbsp;·&nbsp; Maio 2026 &nbsp;·&nbsp; Dados verificados em <a href="https://precondecklist.com" target="_blank">precondecklist.com</a></p>
+<!-- ── FOOTER ── -->
+<footer class="site-footer">
+  <p>Meus Decks de Commander · Análise gerada em Maio de 2026</p>
+  <p style="margin-top:.5rem">
+    Listas verificadas em
+    <a href="https://precondecklist.com" target="_blank">precondecklist.com</a> ·
+    <a href="https://edhrec.com" target="_blank">EDHREC</a> ·
+    <a href="https://moxfield.com" target="_blank">Moxfield</a>
+  </p>
 </footer>
 
+<script src="./js/decks-data.js"></script>
+<script src="./js/main.js"></script>
 <script>
-const DECKS = [
-  {
-    id: 1,
-    name: "Cabaretti Cacophony",
-    commander: "Kitt Kanto, Mayhem Diva",
-    colors: ["W","R","G"],
-    colorsCode: "WRG",
-    type: "intacto",
-    typeLbl: "🟢 Precon Intacto",
-    typeClass: "badge-intacto",
-    bracket: "2",
-    precon: "Streets of New Capenna (2022)",
-    arquetipo: "Tokens / Política (Goad)",
-    nota: 5.0,
-    nota2v2: 8.0,
-    role: "Agressor / Político",
-    scores: { vel:5, con:5, int:5, combo:3, mana:4, sin:8 },
-    why2v2: "Kitt Kanto goa as criaturas dos DOIS oponentes, forçando-os a se atacarem. Isso protege você e seu parceiro automaticamente. Tokens criam pressão constante. Selvala gera recursos para todos. Gahiji dá +2/+0 para criaturas ALIADAS. É o precon mais naturalmente político e útil em duplas.",
-    wincons: ["Tokens com Beastmaster Ascension", "March of the Multitudes instantâneo", "Scute Swarm exponencial", "Grand Crescendo indestuível"],
-    adds: []
-  },
-  {
-    id: 2,
-    name: "World Shaper",
-    commander: "Hearthhull, the Worldseed",
-    colors: ["B","R","G"],
-    colorsCode: "BRG",
-    type: "alterado",
-    typeLbl: "🟡 Precon Alterado",
-    typeClass: "badge-alterado",
-    bracket: "3",
-    precon: "Edge of Eternities (2025)",
-    arquetipo: "Lands / Landfall / Graveyard",
-    nota: 7.0,
-    nota2v2: 7.5,
-    role: "Controlador / Ramp",
-    scores: { vel:7, con:7, int:6, combo:7, mana:7, sin:9 },
-    why2v2: "Omnath, Locus of Rage causa dano quando terrenos entram, pode redirecionar para ameaças dos dois oponentes. Moraug dá combates extras em landfall. Ramp massivo cria espaço para o parceiro. Explosivo no mid-game e capaz de proteger o board com remoções de área.",
-    wincons: ["Omnath + Moraug = combates extras infinitos", "Scute Swarm exponencial com terrenos", "Lord Windgrace + Splendid Reclamation"],
-    adds: ["Lord Windgrace", "The Gitrog Monster", "Korvold", "Omnath Locus of Rage", "Azusa", "Moraug", "Titania"]
-  },
-  {
-    id: 3,
-    name: "Food and Fellowship",
-    commander: "Frodo / Sam, Loyal Attendant",
-    colors: ["W","B","G"],
-    colorsCode: "WBG",
-    type: "alterado",
-    typeLbl: "🟡 Precon Alterado",
-    typeClass: "badge-alterado",
-    bracket: "2-3",
-    precon: "Tales of Middle-Earth (2023)",
-    arquetipo: "Food Tokens / Lifegain / Combo",
-    nota: 6.0,
-    nota2v2: 7.0,
-    role: "Suporte / Lifegain",
-    scores: { vel:5, con:6, int:7, combo:7, mana:6, sin:7 },
-    why2v2: "Alto lifegain mantém a dupla viva por muito mais tempo. Gyome cria Food para todos. Swords to Plowshares e Farewell removem ameaças antes de chegarem ao parceiro. O combo Sanguine Bond + Beacon of Immortality pode vencer inesperadamente para a dupla inteira.",
-    wincons: ["Sanguine Bond + Beacon of Immortality (vitória instantânea)", "Cauldron Familiar + Witch's Oven (recursão)", "Lifegain + pressão de board"],
-    adds: ["Sanguine Bond", "Beacon of Immortality", "Cauldron Familiar", "Witch's Oven", "Chatterfang", "Land Tax"]
-  },
-  {
-    id: 4,
-    name: "Riveteers Rampage",
-    commander: "Henzie \"Toolbox\" Torre",
-    colors: ["B","R","G"],
-    colorsCode: "BRG",
-    type: "alterado",
-    typeLbl: "🟡 Precon Alterado",
-    typeClass: "badge-alterado",
-    bracket: "3",
-    precon: "Streets of New Capenna (2022)",
-    arquetipo: "Reanimator / ETB de criaturas grandes",
-    nota: 7.0,
-    nota2v2: 7.0,
-    role: "Finalizador / Pressão",
-    scores: { vel:7, con:7, int:7, combo:7, mana:6, sin:8 },
-    why2v2: "Criaturas gigantes ameaçam os dois oponentes ao mesmo tempo. Warstorm Surge causa dano em ETB, não precisa de combate. Toxic Deluge limpa boards problemáticos. Birthing Pod busca a criatura certa para qualquer situação. Bom finalizador quando o parceiro controlou a mesa.",
-    wincons: ["Birthing Pod chain", "Warstorm Surge + ETBs", "Etali roubo massivo", "Living Death com cemitério cheio"],
-    adds: ["Birthing Pod", "Birthing Ritual", "Etali", "Toxic Deluge", "Ignoble Hierarch", "Birds of Paradise", "Living Death"]
-  },
-  {
-    id: 5,
-    name: "Bumbum Guloso",
-    commander: "Arcades, the Strategist",
-    colors: ["W","U","G"],
-    colorsCode: "WUG",
-    type: "custom",
-    typeLbl: "🔵 Customizado",
-    typeClass: "badge-custom",
-    bracket: "2-3",
-    precon: "Deck Customizado",
-    arquetipo: "Walls / Defenders",
-    nota: 6.5,
-    nota2v2: 6.5,
-    role: "Controlador / Defesa",
-    scores: { vel:6, con:7, int:6, combo:6, mana:6, sin:9 },
-    why2v2: "Arcades draw ao colocar Walls. Walls bloqueiam TUDO com toughness alto. Counterspell protege o parceiro. Dusk/Dawn e Fell the Mighty limpam criaturas grandes sem derrubar as Walls. O deck não precisa atacar para ser útil — segura a mesa enquanto o parceiro pressiona.",
-    wincons: ["Tower Defense = dano massivo com toughness", "High Alert / Assault Formation", "Arcades + Walls atacantes"],
-    adds: []
-  },
-  {
-    id: 6,
-    name: "Hyrule's Arsenal",
-    commander: "Galea, Kindler of Hope",
-    colors: ["W","U","G"],
-    colorsCode: "WUG",
-    type: "proxy",
-    typeLbl: "🔴 Proxy",
-    typeClass: "badge-proxy",
-    bracket: "3",
-    precon: "Proxy (não é precon)",
-    arquetipo: "Voltron — Auras + Equipment",
-    nota: 8.0,
-    nota2v2: 6.0,
-    role: "Finalizador Rápido (egoísta)",
-    scores: { vel:8, con:8, int:7, combo:8, mana:9, sin:8 },
-    why2v2: "Muito poderoso individualmente, mas 100% focado em Voltron — não contribui diretamente para o parceiro. Counterspell e Heroic Intervention podem proteger o board aliado em emergências. Termina jogos rapidamente o que é bom para a dupla, mas depende do parceiro fazer o trabalho de controle.",
-    wincons: ["Invisible Stalker + All That Glitters", "Colossus Hammer + Sigarda's Aid", "Commander damage em 2 combates", "Kaldra Compleat"],
-    adds: ["Mox Opal", "Fetchlands (x3)", "Scroll Rack", "Stoneforge Mystic", "Urza's Saga", "Boseiju Who Endures"]
-  },
-  {
-    id: 7,
-    name: "Blast from the Past",
-    commander: "The Fourth Doctor / Sarah Jane Smith",
-    colors: ["W","U","G"],
-    colorsCode: "WUG",
-    type: "alterado",
-    typeLbl: "🟡 Precon Alterado",
-    typeClass: "badge-alterado",
-    bracket: "2-3",
-    precon: "Doctor Who (2023)",
-    arquetipo: "Artefatos Históricos / Legendários",
-    nota: 6.0,
-    nota2v2: 5.5,
-    role: "Suporte / Artefatos",
-    scores: { vel:5, con:6, int:6, combo:6, mana:6, sin:6 },
-    why2v2: "Urza gera mana massiva que pode beneficiar o parceiro. Panharmonicon dobra ETBs de ambos os lados. Counterspell e Swords to Plowshares protegem a dupla. Porém a estratégia é um pouco dispersa (Doctor Who + LotR + Artefatos) o que reduz o impacto direto nas duplas.",
-    wincons: ["Urza + artefatos = mana extra", "Cyberdrive Awakener vira artefatos em criaturas", "Academy Manufactor triplicando tokens"],
-    adds: ["Chulane", "Urza Lord High Artificer", "Panharmonicon", "Displaced Dinosaurs", "Dance of the Manse"]
-  },
-  {
-    id: 8,
-    name: "Sultai Arisen",
-    commander: "Teval, the Balanced Scale",
-    colors: ["B","G","U"],
-    colorsCode: "BGU",
-    type: "intacto",
-    typeLbl: "🟢 Precon Intacto",
-    typeClass: "badge-intacto",
-    bracket: "2",
-    precon: "Tarkir: Dragonstorm (2025)",
-    arquetipo: "Self-Mill / Graveyard / Reanimator",
-    nota: 5.0,
-    nota2v2: 5.0,
-    role: "Controlador Lento",
-    scores: { vel:4, con:5, int:5, combo:3, mana:4, sin:8 },
-    why2v2: "Meren é poderosa mas egoísta. O deck funciona melhor como controlador paciente deixando o parceiro pressionar. Casualties of War e Living Death podem virar momentos decisivos. Porém é muito lento — os primeiros turnos são passivos enquanto dois oponentes constroem boards.",
-    wincons: ["Living Death com cemitério cheio", "Meren recursão infinita", "Avenger of Zendikar + tokens", "Jarad sacrifício"],
-    adds: []
-  },
-  {
-    id: 9,
-    name: "Silverquill Influence",
-    commander: "Killian, Decisive Mentor",
-    colors: ["W","B"],
-    colorsCode: "WB",
-    type: "alterado",
-    typeLbl: "🟡 Precon Alterado",
-    typeClass: "badge-alterado",
-    bracket: "2-3",
-    precon: "Silverquill Statement 2021 / Influence 2026",
-    arquetipo: "Auras / Encantamentos",
-    nota: 5.5,
-    nota2v2: 5.0,
-    role: "Suporte / Encantamentos",
-    scores: { vel:5, con:6, int:6, combo:5, mana:5, sin:7 },
-    why2v2: "Winds of Rath é boardwipe que poupa criaturas encantadas — útil mas derruba o board do parceiro se ele não tiver Auras. Deck egoísta focado em crescer próprias criaturas. Eriette cria win-con interessante mas não contribui para o parceiro. Solidário apenas indiretamente.",
-    wincons: ["Eriette of the Charmed Apple", "Eldrazi Conscription em criatura com evasão", "Winds of Rath assimétrico", "All That Glitters"],
-    adds: ["Sram Senior Edificer", "Kor Spiritdancer", "Eriette of the Charmed Apple", "Land Tax", "Eldrazi Conscription"]
-  },
-  {
-    id: 10,
-    name: "Necron Dynasties",
-    commander: "Szarekh, the Silent King",
-    colors: ["B"],
-    colorsCode: "B",
-    type: "proxy",
-    typeLbl: "🔴 Proxy",
-    typeClass: "badge-proxy",
-    bracket: "2-3",
-    precon: "Warhammer 40,000 (2022) — Proxy",
-    arquetipo: "Artefatos / Reanimator / Self-Mill",
-    nota: 5.5,
-    nota2v2: 4.5,
-    role: "Agressor Lento",
-    scores: { vel:4, con:5, int:6, combo:5, mana:4, sin:7 },
-    why2v2: "Mono-color limita a flexibilidade. O deck é lento e passivo nos primeiros turnos, deixando o parceiro vulnerável. Sem cartas que beneficiem o aliado. Living Death é poderoso mas é late-game. Em duplas com ritmo mais alto o Necron demora demais para ser relevante.",
-    wincons: ["Living Death + cemitério cheio", "Cranial Plating em Szarekh voador", "Ghost Ark + Unearth"],
-    adds: []
-  },
-  {
-    id: 11,
-    name: "Paradox Power",
-    commander: "The Thirteenth Doctor",
-    colors: ["G","U","R"],
-    colorsCode: "GUR",
-    type: "alterado",
-    typeLbl: "🟡 Precon Alterado",
-    typeClass: "badge-alterado",
-    bracket: "2-3",
-    precon: "Doctor Who (2023)",
-    arquetipo: "Proliferate / Counters +1/+1",
-    nota: 6.0,
-    nota2v2: 4.0,
-    role: "Solo / Counters",
-    scores: { vel:5, con:6, int:5, combo:5, mana:7, sin:7 },
-    why2v2: "Proliferate é uma estratégia individual — os counters ficam nas suas próprias criaturas, sem benefício direto para o parceiro. O deck é lento para construir pressão. Counterspell é útil mas o plano geral não contribui para a dupla. Funciona melhor em pods de 4 com ritmo lento.",
-    wincons: ["Managorger Hydra crescente", "Hadana's Climb = criatura com voo e power alto", "Counters em Planeswalker até ultimate"],
-    adds: ["Iraxxa Empress of Mars", "Bristly Bill", "Laelia the Blade Reforged", "Ozolith", "Plargg and Nassari"]
-  },
-  {
-    id: 12,
-    name: "Timey-Wimey",
-    commander: "The Tenth Doctor / Rose Tyler",
-    colors: ["W","U","R"],
-    colorsCode: "WUR",
-    type: "intacto",
-    typeLbl: "🟢 Precon Intacto",
-    typeClass: "badge-intacto",
-    bracket: "2",
-    precon: "Doctor Who (2023)",
-    arquetipo: "Suspend / Tokens de Tempo",
-    nota: 5.0,
-    nota2v2: 3.5,
-    role: "Solo (pior para 2v2)",
-    scores: { vel:4, con:4, int:5, combo:3, mana:4, sin:6 },
-    why2v2: "Suspend é o pior arquétipo para Commander em Dupla. Enquanto espera cartas suspensas resolverem ao longo de vários turnos, você não protege o parceiro, não pressiona os oponentes e não contribui para o board. Dois oponentes criam pressure rápida demais para um deck que 'espera'.",
-    wincons: ["Fractured Identity em ameaça do oponente", "As Foretold + cartas com suspend grátis", "The Moment — histórico devastador"],
-    adds: []
-  }
-];
+document.addEventListener('DOMContentLoaded', () => {
 
-const DUPLAS = [
-  {
-    top: true,
-    stars: 5,
-    title: "A Dupla Dominante",
-    decks: ["World Shaper", "Riveteers Rampage"],
-    desc: "Ambos em Jund — compartilham terrenos e cores. World Shaper faz ramp e controla com Omnath enquanto Riveteers pressiona com criaturas gigantes. Dois eixos de ataque (terrenos e criaturas) impossíveis de defender simultaneamente.",
-    role1: "Controlador / Ramp",
-    role2: "Finalizador",
-    sinergia: "Alta",
-    velocidade: "Média-Alta",
-    nota: "9/10"
-  },
-  {
-    top: true,
-    stars: 4,
-    title: "A Dupla Mais Divertida",
-    decks: ["Cabaretti Cacophony", "Bumbum Guloso"],
-    desc: "Kitt Kanto goa oponentes e eles não conseguem atacar ninguém. Arcades bloqueia com Walls enquanto os tokens do Cabaretti atacam livres. Os oponentes ficam presos — sem conseguir passar nem pelo Goad nem pelas Walls.",
-    role1: "Agressor / Político",
-    role2: "Controlador",
-    sinergia: "Alta",
-    velocidade: "Média",
-    nota: "7.5/10"
-  },
-  {
-    top: false,
-    stars: 4,
-    title: "A Dupla Equilibrada",
-    decks: ["Riveteers Rampage", "Hyrule's Arsenal"],
-    desc: "Dois finalizadores poderosos atacando por eixos diferentes. Riveteers ameaça por terra com criaturas enormes. Hyrule's Arsenal voa com Galea equipada. Os oponentes precisam dividir remoção entre voadores e terrestres.",
-    role1: "Finalizador por terra",
-    role2: "Finalizador por voo",
-    sinergia: "Média",
-    velocidade: "Alta",
-    nota: "7/10"
-  },
-  {
-    top: false,
-    stars: 3,
-    title: "A Dupla Resistente",
-    decks: ["Food and Fellowship", "Sultai Arisen"],
-    desc: "Food mantém ambos vivos com lifegain alto. Sultai acumula valor do cemitério no longo prazo. Sultai pode reanimar criaturas que Food sacrificou. Muito resistente — difícil de eliminar definitivamente. Cuidado com decks rápidos.",
-    role1: "Suporte / Lifegain",
-    role2: "Controlador / Recursão",
-    sinergia: "Média",
-    velocidade: "Baixa",
-    nota: "6/10"
-  },
-  {
-    top: false,
-    stars: 1,
-    title: "A Dupla a Evitar",
-    decks: ["Timey-Wimey", "Paradox Power"],
-    desc: "Dois decks completamente solos que não se complementam. Timey-Wimey espera turnos por cartas suspensas. Paradox Power coloca counters no próprio board. Nenhum protege o parceiro, nenhum pressiona rápido. Derrota garantida contra duplas coordenadas.",
-    role1: "Solo",
-    role2: "Solo",
-    sinergia: "Nenhuma",
-    velocidade: "Baixa",
-    nota: "2/10"
-  }
-];
+  /* summary cards */
+  const cats = [
+    { icon:'🔴', val: DECKS.filter(d=>d.type==='proxy').length,    lbl:'Proxies'         },
+    { icon:'🟢', val: DECKS.filter(d=>d.type==='intacto').length,  lbl:'Precons Intactos'},
+    { icon:'🟡', val: DECKS.filter(d=>d.type==='alterado').length, lbl:'Precons Alterados'},
+    { icon:'🔵', val: DECKS.filter(d=>d.type==='custom').length,   lbl:'Customizados'    },
+    { icon:'⚡', val: Math.max(...DECKS.map(d=>d.nota))+'/10',     lbl:'Nota máxima'     },
+    { icon:'⚔️', val: Math.max(...DECKS.map(d=>d.nota2v2))+'/10', lbl:'Nota 2v2 máxima' },
+  ];
+  document.getElementById('summary-grid').innerHTML = cats.map(c => `
+    <div class="summary-card">
+      <div class="summary-icon">${c.icon}</div>
+      <div><div class="summary-val">${c.val}</div><div class="summary-lbl">${c.lbl}</div></div>
+    </div>`).join('');
 
-/* ─── RENDER DECK CARDS ─── */
-function stars(n, max=10) {
-  const full = Math.round(n);
-  return Array.from({length:max}, (_,i) =>
-    `<span class="star${i < full ? ' on':''}">${i < full ? '★':'☆'}</span>`
-  ).join('');
-}
+  /* top 3 decks por nota */
+  const top3 = getDecksSortedByNota().slice(0, 3);
+  document.getElementById('top-decks-grid').innerHTML = top3.map((d, i) => renderDeckCard(d, i+1)).join('');
+  initScoreBarAnimations();
 
-function colorPips(colors) {
-  return colors.map(c => `<div class="pip pip-${c}" title="${c}">${c}</div>`).join('');
-}
-
-function barColor(key) {
-  const map = { vel:'#e08060', con:'#5588ee', int:'#cc5588', combo:'#cc44aa', mana:'#4caf82', sin:'#c9a84c' };
-  return map[key] || '#888';
-}
-
-function renderDeckCard(d, rank) {
-  const scoreRows = [
-    {key:'vel', lbl:'Velocidade'},
-    {key:'con', lbl:'Consistência'},
-    {key:'int', lbl:'Interação'},
-    {key:'combo', lbl:'Combos'},
-    {key:'mana', lbl:'Mana'},
-    {key:'sin', lbl:'Sinergia'},
-  ].map(({key,lbl}) => `
-    <div class="score-row">
-      <span class="score-label">${lbl}</span>
-      <div class="score-bar-wrap">
-        <div class="score-bar-fill" style="width:${d.scores[key]*10}%; background:${barColor(key)};"></div>
-      </div>
-      <span class="score-val">${d.scores[key]}/10</span>
-    </div>
-  `).join('');
-
-  const addsTags = d.adds.length
-    ? `<div class="detail-section"><strong>Cartas Adicionadas ao Precon</strong><div class="detail-tags">${d.adds.map(a=>`<span class="detail-tag">${a}</span>`).join('')}</div></div>`
-    : '';
-
-  const wc = d.wincons.map(w=>`<span class="detail-tag">${w}</span>`).join('');
-
-  return `
-  <div class="deck-card" data-type="${d.type}" data-colors="${d.colorsCode}">
-    <div class="deck-rank-num">${rank}</div>
-    <div class="deck-header">
-      <span class="deck-type-badge ${d.typeClass}">${d.typeLbl}</span>
-      <div class="deck-name">${d.name}</div>
-      <div class="deck-commander">${d.commander}</div>
-      <div class="color-pips">${colorPips(d.colors)}</div>
-      <span class="deck-role">${d.role}</span>
-    </div>
-    ${scoreRows}
-    <div class="nota-2v2">
-      <span class="label">Nota 2v2</span>
-      <div class="stars">${stars(d.nota2v2)}</div>
-      <span class="nota-num">${d.nota2v2}/10</span>
-    </div>
-    <button class="expand-btn" onclick="toggleDetail(this)">
-      <span class="arrow">▼</span> Ver detalhes
-    </button>
-    <div class="deck-detail">
-      <div class="detail-section">
-        <strong>Por que em duplas?</strong>
-        ${d.why2v2}
-      </div>
-      <div class="detail-section">
-        <strong>Win-cons</strong>
-        <div class="detail-tags">${wc}</div>
-      </div>
-      ${addsTags}
-      <div class="detail-section">
-        <strong>Precon / Origem</strong>
-        ${d.precon}
-      </div>
-    </div>
-  </div>`;
-}
-
-function toggleDetail(btn) {
-  btn.classList.toggle('open');
-  const detail = btn.nextElementSibling;
-  detail.classList.toggle('open');
-  btn.querySelector('.arrow').style.transform = detail.classList.contains('open') ? 'rotate(180deg)' : '';
-}
-
-/* ─── RENDER DUPLAS ─── */
-function renderDuplas() {
-  const grid = document.getElementById('dupla-grid');
-  grid.innerHTML = DUPLAS.map(d => {
-    const deckTags = d.decks.map(n=>`<span class="dupla-deck-tag">${n}</span>`).join('');
-    const starStr = Array.from({length:5},(_,i)=> i<d.stars ? '⭐':'☆').join('');
+  /* top 2 duplas */
+  const top2 = DUPLAS.slice(0, 2);
+  document.getElementById('top-duplas').innerHTML = top2.map(d => {
+    const deckObjs = d.decksIds.map(id => getDeckById(id));
+    const tags = deckObjs.map(dk => `<span class="dupla-deck-tag">${dk.name}</span>`).join('');
+    const strs = Array.from({length:5},(_,i)=>i<d.stars?'⭐':'☆').join('');
     return `
-    <div class="dupla-card ${d.top?'top':''}">
-      <div class="dupla-stars">${starStr}</div>
-      <div class="dupla-title">${d.title}</div>
-      <div class="dupla-decks">${deckTags}</div>
+    <div class="dupla-card highlight">
+      <div class="dupla-stars">${strs} <span style="font-family:var(--font-mono);font-size:.65rem;color:var(--text3);margin-left:.5rem">${d.nota}/10</span></div>
+      <div class="dupla-title">${d.emoji} ${d.title}</div>
+      <div class="dupla-decks">${tags}</div>
       <div class="dupla-desc">${d.desc}</div>
-      <div class="dupla-meta">
-        <div class="dupla-meta-item">SINERGIA <span>${d.sinergia}</span></div>
-        <div class="dupla-meta-item">VELOCIDADE <span>${d.velocidade}</span></div>
-        <div class="dupla-meta-item">NOTA <span>${d.nota}</span></div>
-      </div>
+      <div class="dupla-dica">${d.dica}</div>
     </div>`;
   }).join('');
-}
 
-/* ─── RENDER TABLE ─── */
-function renderTable() {
-  const sorted = [...DECKS].sort((a,b) => b.nota - a.nota);
-  const body = document.getElementById('table-body');
-  body.innerHTML = sorted.map((d, i) => {
-    const pos = i+1;
-    const posClass = pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
-    const noteColor = d.nota>=7?'var(--green)':d.nota>=6?'var(--gold)':'var(--text2)';
-    const note2vColor = d.nota2v2>=7?'var(--green)':d.nota2v2>=6?'var(--gold)':'var(--text2)';
-    return `<tr>
-      <td><span class="pos-num ${posClass}">${pos}º</span></td>
-      <td><strong>${d.name}</strong></td>
-      <td style="color:var(--gold);font-style:italic;font-size:0.85rem">${d.commander}</td>
-      <td><div class="color-pips" style="gap:3px">${colorPips(d.colors)}</div></td>
-      <td><span class="deck-type-badge ${d.typeClass}" style="font-size:0.6rem">${d.typeLbl}</span></td>
-      <td><span class="bracket-pill">B${d.bracket}</span></td>
-      <td><span class="note-pill" style="color:${noteColor}">${d.nota}/10</span></td>
-      <td><span class="note-pill" style="color:${note2vColor};font-weight:700">${d.nota2v2}/10</span></td>
-    </tr>`;
-  }).join('');
-}
-
-/* ─── FILTERS ─── */
-function renderGrid(filter = 'all') {
-  const sorted = [...DECKS].sort((a,b) => b.nota2v2 - a.nota2v2);
-  const grid = document.getElementById('deck-grid');
-  let rank = 0;
-  grid.innerHTML = sorted.map(d => {
-    const show = filter==='all' || d.type===filter;
-    if (!show) return `<div class="deck-card hidden" data-type="${d.type}"></div>`;
-    rank++;
-    return renderDeckCard(d, rank);
-  }).join('');
-
-  // Intersection Observer para animar barras
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.deck-card:not(.hidden)').forEach(c => observer.observe(c));
-}
-
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderGrid(btn.dataset.filter);
-  });
+  /* categorias */
+  const catCards = [
+    { icon:'🔴', title:'Proxy (2)', color:'var(--red)',
+      desc:'Decks com cartas impressas/falsas. Identificados pelo nome do arquivo e pelas cartas de alto valor.',
+      items: DECKS.filter(d=>d.type==='proxy').map(d=>d.name) },
+    { icon:'🟢', title:'Precon Intacto (3)', color:'var(--green)',
+      desc:'Listas verificadas carta a carta contra o precon oficial publicado pela Wizards of the Coast.',
+      items: DECKS.filter(d=>d.type==='intacto').map(d=>d.name) },
+    { icon:'🟡', title:'Precon Alterado (6)', color:'var(--yellow)',
+      desc:'Baseados em precons oficiais, mas com cartas adicionadas e/ou removidas.',
+      items: DECKS.filter(d=>d.type==='alterado').map(d=>d.name) },
+    { icon:'🔵', title:'Customizado (1)', color:'var(--blue)',
+      desc:'Deck construído do zero sem base em nenhum precon oficial.',
+      items: DECKS.filter(d=>d.type==='custom').map(d=>d.name) },
+  ];
+  document.getElementById('cat-grid').innerHTML = catCards.map(c => `
+    <div class="bracket-card">
+      <div style="font-size:2rem;margin-bottom:.5rem">${c.icon}</div>
+      <div class="bracket-name" style="color:${c.color}">${c.title}</div>
+      <div class="bracket-desc">${c.desc}</div>
+      <div class="bracket-decks">${c.items.map(n=>`<span class="bracket-deck-tag">${n}</span>`).join('')}</div>
+    </div>`).join('');
 });
-
-/* ─── NAV ACTIVE ─── */
-const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('.nav-tabs a');
-window.addEventListener('scroll', () => {
-  let current = '';
-  sections.forEach(s => {
-    if (window.scrollY >= s.offsetTop - 80) current = s.id;
-  });
-  navLinks.forEach(a => {
-    a.classList.toggle('active', a.getAttribute('href') === '#'+current);
-  });
-});
-
-/* ─── INIT ─── */
-renderGrid('all');
-renderDuplas();
-renderTable();
 </script>
 </body>
 </html>
